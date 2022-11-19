@@ -59,10 +59,12 @@ def parsing(raw_data):
                 lock = 1
             elif sumbol  == ")":
                 lock = 0
-            elif ((sumbol == "-")or(sumbol =="+")or(sumbol =="*")or(sumbol =="/")):
+            elif ((sumbol == "-")or(sumbol =="+")or(sumbol =="\\cdot")or(sumbol =="^")):
                 stack.append(sumbol)
                 sumbol = ""
                 flag = 1
+            elif (sumbol =="\\frac")or(sumbol =="\\sqrt"):
+                stack.append("")
             elif flag == 1 and sumbol !=")":
                 flag = 0
                 sumbol = sumbol + stack.pop()
@@ -75,6 +77,7 @@ def parsing(raw_data):
             print(f"{k} {i}")
             k = k + 1
         print(result)
+        result = ""
 
         j = j + 1
 
@@ -89,9 +92,9 @@ def IdentSumbol(i):
     elif re.search ("<ml:plus/>",i):
         sumbol ="+"
     elif re.search ("<ml:mult/>",i): 
-        sumbol ="*"
+        sumbol ="\cdot"
     elif re.search ("<ml:div/>",i):
-        sumbol ="/"
+        sumbol ="\\frac"
     elif  re.search ("</ml:apply>",i):
         sumbol ="}"
     elif  re.search ("<ml:parens>",i):
@@ -101,17 +104,19 @@ def IdentSumbol(i):
     elif re.search ("<ml:pow/>",i):
         sumbol ="^"
     elif re.search ("<ml:sqrt/>",i):
-        sumbol ="sqrt"
+        sumbol ="\\sqrt"
     elif re.search ("<ml:nthRoot/>",i):
-        sumbol ="sqrt"
+        sumbol ="\\sqrt"
     elif  re.search ("<ml:command>",i):
         sumbol ="="
     elif  re.search ("<ml:real>.*?</ml:real>",i):
-        sumbol = re.search ("<ml:real>(.*?)</ml:real>",i).group(1)
+        sumbol = "{" + re.search ("<ml:real>(.*?)</ml:real>",i).group(1) + "}" 
     elif  re.search ("<ml:id.*?>.*?</ml:id>",i):
         sumbol = re.search ("<ml:id.*?>(.*?)</ml:id>",i).group(1) 
     elif  re.search ("<ml:symEval.*?>",i):
-        sumbol = "="            
+        sumbol = "="
+    elif re.search ("<ml:eval.*?>",i): 
+        sumbol = "="       
     elif  re.search ("<result.*?>",i):
         sumbol ="=" 
     else:
