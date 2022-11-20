@@ -46,28 +46,34 @@ def parsing(raw_data):
         flag = 0
         lock = 0
         for i in buffer:
+            flag = 1
             sumbol = IdentSumbol(i)
 
             
             if sumbol  == "{":
                 flag = 0
-            elif  sumbol  == "}" and lock == 0: 
+                stack.append("")
+            elif  sumbol  == "}": 
                 if len(stack) != 0:
                     sumbol = sumbol + stack.pop()
-                flag = 0
             elif sumbol  == "(":
-                lock = 1
+                stack.append("")
             elif sumbol  == ")":
-                lock = 0
+                if len(stack) != 0:
+                    sumbol = sumbol + stack.pop()
             elif ((sumbol == "-")or(sumbol =="+")or(sumbol =="\\cdot")or(sumbol =="^")):
                 stack.append(sumbol)
                 sumbol = ""
-                flag = 1
-            elif (sumbol =="\\frac")or(sumbol =="\\sqrt"):
+            elif (sumbol =="\\frac"):
                 stack.append("")
-            elif flag == 1 and sumbol !=")":
-                flag = 0
-                sumbol = sumbol + stack.pop()
+            elif sumbol =="\\sqrt[":
+                stack.append("]")
+            elif sumbol =="equal":
+                stack.append("=")
+                sumbol = ""
+            elif flag == 1:
+                if len(stack) != 0:
+                    sumbol = sumbol + stack.pop()
 
 
 
@@ -76,13 +82,19 @@ def parsing(raw_data):
                     
             print(f"{k} {i}")
             k = k + 1
+        result = re.sub("=+","=",result)
+        result = re.sub("^=+","",result)
+        result = re.sub("explicit.*?{","{",result)
+        result = re.sub("solve.*?{","{",result)
         print(result)
         result = ""
+        stack.clear()
 
         j = j + 1
 
 
 def IdentSumbol(i):
+    sumbol_round = 3
     str(i)
     sumbol =''
     if  re.search ("<ml:apply>",i):
@@ -106,19 +118,21 @@ def IdentSumbol(i):
     elif re.search ("<ml:sqrt/>",i):
         sumbol ="\\sqrt"
     elif re.search ("<ml:nthRoot/>",i):
-        sumbol ="\\sqrt"
+        sumbol ="\\sqrt["
     elif  re.search ("<ml:command>",i):
         sumbol ="="
     elif  re.search ("<ml:real>.*?</ml:real>",i):
         sumbol = "{" + re.search ("<ml:real>(.*?)</ml:real>",i).group(1) + "}" 
     elif  re.search ("<ml:id.*?>.*?</ml:id>",i):
-        sumbol = re.search ("<ml:id.*?>(.*?)</ml:id>",i).group(1) 
+        sumbol = re.search ("<ml:id.*?>(.*?)</ml:id>",i).group(1)
     elif  re.search ("<ml:symEval.*?>",i):
         sumbol = "="
     elif re.search ("<ml:eval.*?>",i): 
         sumbol = "="       
     elif  re.search ("<result.*?>",i):
         sumbol ="=" 
+    elif  re.search ("<ml:equal/>",i):
+        sumbol ="equal"     
     else:
          sumbol =''      
     return sumbol 
