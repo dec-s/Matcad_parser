@@ -12,13 +12,41 @@ def ReadFiles (name_file):
 
     return raw_data
 
-def write_files(redy_data):
+def write_files(redy_data, file_name_buf):
+    buffer = str(file_name_buf).split(".")
+    try:
+        i = 0
+        while(i < 100):
+            if(i != 0):
+                file_name = ""
+                if  len(buffer) > 1:
+                    file_name = buffer[0] + f"({i})." + buffer[1]
+                else:
+                    file_name = buffer[0] + f"({i})"
+            else:
+                if  len(buffer) > 1:
+                    file_name = buffer[0] + "." + buffer[1]
+                else:
+                    file_name = buffer[0]
+            f = open(file_name,'r')
+            f.close()
+            i = i + 1
+        print(f"не удалось записать в файл1\n {e}")
+    except Exception as e:
+        try:
+             with open(file_name,'w',encoding="utf-8") as f:
+                f.write(redy_data)
+                print("файл успешно создан")
+        except Exception as ex:
+            print(f"не удалось записать в файл2\n {ex}")
+
     return 0
 
-def parsing(raw_data):
+def parsing(raw_data, file_name = "raw_equation.txt"):
     regx1 = r'<math .*?>([\s\S]*?)</math>'
     stack = []
     buffer = []
+    write_data = ""
     
     regx_str = re.findall(regx1,raw_data)
     result = ''
@@ -87,10 +115,14 @@ def parsing(raw_data):
         result = re.sub("explicit.*?{","{",result)
         result = re.sub("solve.*?{","{",result)
         print(result)
+        write_data = write_data +"\\[" + result + "\\]\n"
         result = ""
         stack.clear()
 
         j = j + 1
+    
+    write_files(write_data, file_name)
+    return 0 
 
 
 def IdentSumbol(i):
@@ -140,9 +172,12 @@ def IdentSumbol(i):
 
 def main (argv = []):
 
-    if len(argv) > 1:
+    if len(argv) == 1:
         raw_data = ReadFiles (argv[1])
         parsing(raw_data)
+    elif len(argv) > 2:
+                raw_data = ReadFiles (argv[1])
+                parsing(raw_data, argv[2])
     else:
         print("Введите путь до разбираемого файла")
 
